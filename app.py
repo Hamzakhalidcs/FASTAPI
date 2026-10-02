@@ -12,7 +12,7 @@
 
 To check the username of macos use uname -m and for product name and version sw_vers. 
 
-Added some text to check status 
+Remove snippet
 """
 
 from fastapi import FastAPI
