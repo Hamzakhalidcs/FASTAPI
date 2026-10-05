@@ -11,7 +11,8 @@
 10. Async Endpoints
 
 To check the username of macos use uname -m and for product name and version sw_vers. 
-Remove extra text
+A query parameter is additional information that we send to an API throug URL after ?
+for example /products/101?category=soap
 """
 
 from fastapi import FastAPI
@@ -50,4 +51,12 @@ def get_user(user_id:int, order_id:int):
 def product(product_id :int):
     return {
         "Product_ID" : product_id
+    }
+
+@app.get('/product_query')
+def product(category:str, brand:str):
+    return{
+        "Category" : category,
+        "Brand" : brand,
+        "message" : f"Showing products from {category} category and Brand of {brand}"
     }
