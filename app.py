@@ -53,9 +53,12 @@ def product(product_id :int):
         "Product_ID" : product_id
     }
 
-@app.get('/product_query')
-def product(category:str, brand:str):
+@app.get('/product_query/{product_id}')
+# optional Query Parameter 
+# Now path + query Parameters
+def product(product_id : int,category:str, brand:str = "Any"):
     return{
+        "ProductID" : product_id,
         "Category" : category,
         "Brand" : brand,
         "message" : f"Showing products from {category} category and Brand of {brand}"
