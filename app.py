@@ -13,6 +13,12 @@
 To check the username of macos use uname -m and for product name and version sw_vers. 
 A query parameter is additional information that we send to an API throug URL after ?
 for example /products/101?category=soap
+
+Json stand for Java Script Object Notation. It is a Standard format used for sending data 
+between system, especially between a frontend and backend/API.
+
+A Framework is a pre-built structure that provides a foundation for building software. 
+it gives you a skeleton to fill in, rather than making you build every thing from scratch. 
 """
 
 from fastapi import FastAPI
@@ -25,6 +31,15 @@ def about():
         "Name" : "Hamza Khalid",
         "Role" : "AI Engineer"
         }
+
+@app.get('/profile')
+def profile():
+    return{
+        "name" : "Hamza Khalid",
+        "age" : 29, 
+        "is_learning" : True,
+        "Skills" : ["Python", "SQL", "POWERBI"]
+    }
 
 @app.get('/skill')
 def skill():
@@ -61,5 +76,5 @@ def product(product_id : int,category:str, brand:str = "Any"):
         "ProductID" : product_id,
         "Category" : category,
         "Brand" : brand,
-        "message" : f"Showing products from {category} category and Brand of {brand}"
+        "message" : f"Showing products from {category} category and Brand of {brand} and ProductID {product_id}"
     }
