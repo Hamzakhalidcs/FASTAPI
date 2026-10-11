@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
+import json 
 
 app = FastAPI()
 
@@ -19,4 +20,15 @@ def create_product(product:Product):
         "Price" : product.price,
         "Categroy" : product.Category,
         "Description" : product.description
+    }
+
+@app.post("/product_data")
+def product(product_data : Product):
+    product_data = product_data.model_dump()
+    with open("product.json", "w") as file:
+        json.dump(product_data, file, indent=4)
+
+    return {
+        "message" : "Product Save Successfully",
+        "product" : product_data
     }
