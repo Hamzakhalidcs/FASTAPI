@@ -1,6 +1,14 @@
-{
-    "name": "Soap",
-    "price": 160.0,
-    "Category": "General Cosmetics",
-    "description": "Best for washing Hands"
-}
+[
+    {
+        "name": "Shampo",
+        "price": 410.0,
+        "Category": "General Cosmetics",
+        "description": "Hair Care"
+    },
+    {
+        "name": "Hair Color",
+        "price": 200.0,
+        "Category": "Cosmetics",
+        "description": "Hair Color"
+    }
+]

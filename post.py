@@ -2,8 +2,12 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import Optional
 import json 
+from pathlib import Path
+
+
 
 app = FastAPI()
+
 
 class Product(BaseModel):
     name :str
@@ -22,13 +26,41 @@ def create_product(product:Product):
         "Description" : product.description
     }
 
-@app.post("/product_data")
-def product(product_data : Product):
-    product_data = product_data.model_dump()
-    with open("product.json", "w") as file:
-        json.dump(product_data, file, indent=4)
+# @app.post("/product_data")
+# def product(product_data : Product):
+#     product_data = product_data.model_dump()
+#     with open("product.json", "w") as file:
+#         json.dump(product_data, file, indent=4)
+
+#     return {
+#         "message" : "Product Save Successfully",
+#         "product" : product_data
+#     }
+
+
+file_path  = Path("product.json")
+
+file_path = Path("product.json")
+
+
+@app.post("/product_data_in_file")
+def create_product(product: Product):
+    product_data = product.model_dump()
+
+    if file_path.exists():
+        with open(file_path, "r", encoding="utf-8") as file:
+            products = json.load(file)
+    else:
+        # If the file does not exist, start with an empty list
+        products = []
+
+    products.append(product_data)
+
+    with open(file_path, "w", encoding="utf-8") as file:
+        json.dump(products, file, indent=4)
 
     return {
-        "message" : "Product Save Successfully",
-        "product" : product_data
+        "message": "Product saved successfully",
+        "product": product_data,
+        "total_products": len(products)
     }
