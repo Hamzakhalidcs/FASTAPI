@@ -3,11 +3,17 @@ from pydantic import BaseModel
 from typing import Optional
 import json 
 from pathlib import Path
+from sqlalchemy import create_engine,  text
 
 
 
 app = FastAPI()
 
+database_url = "sqlite:///./products.db"
+engine = create_engine(
+    database_url, 
+    connect_args= {"check_same_thread": False}
+)
 
 class Product(BaseModel):
     name :str
@@ -40,9 +46,6 @@ def create_product(product:Product):
 
 file_path  = Path("product.json")
 
-file_path = Path("product.json")
-
-
 @app.post("/product_data_in_file")
 def create_product(product: Product):
     product_data = product.model_dump()
@@ -63,4 +66,15 @@ def create_product(product: Product):
         "message": "Product saved successfully",
         "product": product_data,
         "total_products": len(products)
+    }
+
+@app.get('/check_database')
+def check_dabase():
+    with engine.connect() as connection:
+        result = connection.execute(text("Select 1"))
+        value = result.scalar()
+
+    return{
+        "message" : "Database Connected Successfully",
+        "result":value
     }
