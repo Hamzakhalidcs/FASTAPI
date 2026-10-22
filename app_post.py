@@ -2,6 +2,10 @@ import psycopg
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+class Product(BaseModel):
+    product : str
+    price : int 
+
 app = FastAPI()
 
 def get_connection():
@@ -23,3 +27,26 @@ def get_products():
         return {
             "Products": products
         }
+    
+@app.post('/products_post')
+def post_product(product:Product):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                
+                """
+                INSERT INTO products (product, price)
+                VALUES (%s, %s)
+                RETURNING product, price;
+                """,
+                   (product.product, product.price )
+                )
+            new_product = cur.fetchone()
+    
+    return {
+        "message" : "product Insert Successfully",
+        "Product" : {
+            "product": new_product[0],
+            "price" : new_product[1]
+        }
+    }
