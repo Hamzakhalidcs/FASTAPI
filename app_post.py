@@ -80,3 +80,30 @@ def update_product(product_id:int, product:Product):
             "price" : update_product[1]
         }
     }
+
+@app.delete("/delete_products/{product_name}")
+def delete_product(product_name:str):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                DELETE FROM products
+                WHERE product = %s
+                RETURNING product, price;
+                """,
+                (product_name,)
+
+            )
+
+            deleted_product = cur.fetchone()
+
+        if deleted_product is None:
+            return {"message": "Product Not Found"}
+        
+        return {
+            "message" : "Product Deleted Successfully",
+            "product": {
+                "product" : deleted_product[0],
+                "price" : deleted_product[1]
+            }
+        }
