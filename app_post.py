@@ -51,7 +51,7 @@ def post_product(product:Product):
         }
     }
 
-@app.post('/product_put/{product_id}')
+@app.put('/product_put/{product_id}')
 def update_product(product_id:int, product:Product):
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -98,7 +98,11 @@ def delete_product(product_name:str):
             deleted_product = cur.fetchone()
 
         if deleted_product is None:
-            return {"message": "Product Not Found"}
+            # return {"message": "Product Not Found"}
+            raise HTTPException(
+                status_code=404,
+                detail="Product Not Found"
+            )
         
         return {
             "message" : "Product Deleted Successfully",
