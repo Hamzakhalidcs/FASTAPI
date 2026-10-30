@@ -16,6 +16,10 @@ class ProductResponse(BaseModel):
 class ProductsResponse(BaseModel):
     Products: list[ProductResponse]
 
+class ProductCreateResponse(BaseModel):
+    message: str
+    Product: ProductResponse
+
 app = FastAPI()
 
 def get_connection():
@@ -48,29 +52,32 @@ def get_products():
         ]
     }
 
-    
-@app.post('/products_post')
-def post_product(product:Product):
+
+@app.post('/products_post', response_model=ProductCreateResponse)
+def post_product(product: Product):
+
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                
                 """
                 INSERT INTO products (product, price)
                 VALUES (%s, %s)
-                RETURNING product, price;
+                RETURNING id, product, price;
                 """,
-                   (product.product, product.price )
-                )
+                (product.product, product.price)
+            )
+
             new_product = cur.fetchone()
-    
+
     return {
-        "message" : "product Insert Successfully",
-        "Product" : {
-            "product": new_product[0],
-            "price" : new_product[1]
+        "message": "Product Inserted Successfully",
+        "Product": {
+            "id": new_product[0],
+            "product": new_product[1],
+            "price": new_product[2]
         }
     }
+
 
 @app.put('/product_put/{product_id}')
 def update_product(product_id:int, product:Product):
