@@ -1,10 +1,20 @@
 import psycopg
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class Product(BaseModel):
-    product : str
-    price : int 
+    product: str = Field(min_length=1)
+    price: int = Field(gt=0)
+
+
+class ProductResponse(BaseModel):
+    id: int
+    product: str
+    price: int
+
+
+class ProductsResponse(BaseModel):
+    Products: list[ProductResponse]
 
 app = FastAPI()
 
@@ -15,18 +25,29 @@ def get_connection():
         host="/tmp"
     )
 
-@app.get('/products')
+@app.get("/products", response_model=ProductsResponse)
 def get_products():
+
     with get_connection() as conn:
         with conn.cursor() as cur:
-            # cur.execute("SELECT current_database(), current_user")
-            # print(cur.fetchone())
-            cur.execute("SELECT * FROM products")
+
+            cur.execute(
+                "SELECT id, product, price FROM products"
+            )
+
             products = cur.fetchall()
 
-        return {
-            "Products": products
-        }
+    return {
+        "Products": [
+            {
+                "id": row[0],
+                "product": row[1],
+                "price": row[2]
+            }
+            for row in products
+        ]
+    }
+
     
 @app.post('/products_post')
 def post_product(product:Product):
@@ -65,18 +86,16 @@ def update_product(product_id:int, product:Product):
                 (product.product, product.price, product_id)
             )
 
-            update_product = cur.fetchone()
+            updated_product = cur.fetchone()
 
-            if update_product is None:
+            if updated_product is None:
                 raise HTTPException(status_code=404, detail="Product Not Found ")
-            
-        conn.commit()
 
     return {
         "message" : "Product Update Successfully",
         "Product" : {
             "Id" : product_id,
-            "prodcut" : update_product[0],
+            "product" : update_product[0],
             "price" : update_product[1]
         }
     }
