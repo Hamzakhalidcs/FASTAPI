@@ -1,33 +1,7 @@
-import psycopg
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-
-class Product(BaseModel):
-    product: str = Field(min_length=1)
-    price: int = Field(gt=0)
-
-
-class ProductResponse(BaseModel):
-    id: int
-    product: str
-    price: int
-
-
-class ProductsResponse(BaseModel):
-    Products: list[ProductResponse]
-
-class ProductCreateResponse(BaseModel):
-    message: str
-    Product: ProductResponse
+from classes import *
 
 app = FastAPI()
-
-def get_connection():
-    return psycopg.connect(
-        dbname= "sql_practice",
-        user="macbook_user",
-        host="/tmp"
-    )
 
 @app.get("/products", response_model=ProductsResponse)
 def get_products():
@@ -99,13 +73,13 @@ def update_product(product_id:int, product:Product):
                 raise HTTPException(status_code=404, detail="Product Not Found ")
 
     return {
-    "message" : "Update Product Successfully",
+    
     "id": updated_product[0],
     "product": updated_product[1],
     "price": updated_product[2]
 }
 
-@app.delete("/delete_products/{product_name}")
+@app.delete("/delete_products/{product_name}", response_model=ProductDeleteResponse)
 def delete_product(product_name:str):
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -113,7 +87,7 @@ def delete_product(product_name:str):
                 """
                 DELETE FROM products
                 WHERE product = %s
-                RETURNING product, price;
+                RETURNING id, product, price;
                 """,
                 (product_name,)
 
@@ -131,7 +105,8 @@ def delete_product(product_name:str):
         return {
             "message" : "Product Deleted Successfully",
             "product": {
-                "product" : deleted_product[0],
-                "price" : deleted_product[1]
+                "id" : deleted_product[0],
+                "product" : deleted_product[1],
+                "price" : deleted_product[2]
             }
         }
