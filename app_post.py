@@ -79,17 +79,17 @@ def update_product(product_id:int, product:Product):
     "price": updated_product[2]
 }
 
-@app.delete("/delete_products/{product_name}", response_model=ProductDeleteResponse)
-def delete_product(product_name:str):
+@app.delete("/delete_products/{product_id}", response_model=ProductDeleteResponse)
+def delete_product(product_id:int):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
                 DELETE FROM products
-                WHERE product = %s
+                WHERE id = %s
                 RETURNING id, product, price;
                 """,
-                (product_name,)
+                (product_id,)
 
             )
 
