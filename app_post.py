@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from classes import *
+import psycopg
 
 app = FastAPI()
 
@@ -30,18 +31,31 @@ def get_products():
 @app.post('/products_post', response_model=ProductCreateResponse)
 def post_product(product: Product):
 
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                INSERT INTO products (product, price)
-                VALUES (%s, %s)
-                RETURNING id, product, price;
-                """,
-                (product.product, product.price)
-            )
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO products (product, price)
+                    VALUES (%s, %s)
+                    RETURNING id, product, price;
+                    """,
+                    (product.product, product.price)
+                )
 
-            new_product = cur.fetchone()
+                new_product = cur.fetchone()
+
+    except psycopg.errors.UniqueViolation:
+        raise HTTPException(
+            status_code=409,
+            detail='Product Already Exists'
+        )
+    
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail=f"An Internal Server Error occured !"
+        )
 
     return {
         "message": "Product Inserted Successfully",
