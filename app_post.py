@@ -5,14 +5,21 @@ import psycopg
 app = FastAPI()
 
 @app.get("/products", response_model=ProductsResponse)
-def get_products():
+def get_products(product: str = None):
 
     with get_connection() as conn:
         with conn.cursor() as cur:
 
-            cur.execute(
-                "SELECT id, product, price FROM products"
-            )
+            if product:
+                cur.execute(
+                    "SELECT id, product, price FROM products WHERE product = %s",
+                    (product,)
+                )
+
+            else:
+                cur.execute(
+                    "SELECT id, product, price FROM products"
+                )
 
             products = cur.fetchall()
 
