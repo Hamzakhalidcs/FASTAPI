@@ -12,7 +12,7 @@ def get_products(product: str = None):
 
             if product:
                 cur.execute(
-                    "SELECT id, product, price FROM products WHERE product LIKE %s",
+                    "SELECT id, product, price FROM products WHERE product ILIKE %s",
                     (f"%{product}%",)
                 )
 
