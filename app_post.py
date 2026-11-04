@@ -34,6 +34,48 @@ def get_products(product: str = None):
         ]
     }
 
+@app.get('/get_products_sort_asc', response_model=ProductsResponse)
+def get_products_sort():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, product, price FROM products ORDER BY price ASC"
+            )
+
+            products = cur.fetchall()
+
+    return {
+        "Products":[
+            {
+            "id" : row[0],
+            "product" : row[1],
+            "price":row[2]
+            }    
+            for row in products
+        ]
+    }
+
+@app.get('/get_products_sort_desc', response_model=ProductsResponse)
+def get_sort_desc():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, product, price FROM products ORDER BY price DESC"
+            )
+
+            products = cur.fetchall()
+        
+    return {
+        "Products" : [
+            {
+                "id" :row[0],
+                "product" : row[1],
+                "price" :row[2]
+            }
+            for row in products
+        ]
+    } 
+
 
 @app.post('/products_post', response_model=ProductCreateResponse)
 def post_product(product: Product):
