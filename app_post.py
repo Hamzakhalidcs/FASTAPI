@@ -12,8 +12,8 @@ def get_products(product: str = None):
 
             if product:
                 cur.execute(
-                    "SELECT id, product, price FROM products WHERE product = %s",
-                    (product,)
+                    "SELECT id, product, price FROM products WHERE product LIKE %s",
+                    (f"%{product}%",)
                 )
 
             else:
