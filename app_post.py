@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from classes import *
 import psycopg
+from typing import Literal
+from fastapi import Query
 
 app = FastAPI()
 
@@ -34,12 +36,19 @@ def get_products(product: str = None):
         ]
     }
 
-@app.get('/get_products_sort_asc', response_model=ProductsResponse)
-def get_products_sort():
+@app.get('/get_products_sort', response_model=ProductsResponse)
+def get_products_sort(order: Literal["asc", "desc"] = Query("asc",description="Sort By Price")):
+    
+    sort_option = {
+        "asc" : "ASC",
+        "desc" : "DESC"
+    }
+    sql_order = sort_option[order]
+
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, product, price FROM products ORDER BY price ASC"
+                f"SELECT id, product, price FROM products ORDER BY price {sql_order}"
             )
 
             products = cur.fetchall()
@@ -54,27 +63,6 @@ def get_products_sort():
             for row in products
         ]
     }
-
-@app.get('/get_products_sort_desc', response_model=ProductsResponse)
-def get_sort_desc():
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT id, product, price FROM products ORDER BY price DESC"
-            )
-
-            products = cur.fetchall()
-        
-    return {
-        "Products" : [
-            {
-                "id" :row[0],
-                "product" : row[1],
-                "price" :row[2]
-            }
-            for row in products
-        ]
-    } 
 
 
 @app.post('/products_post', response_model=ProductCreateResponse)
