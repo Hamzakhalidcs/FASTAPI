@@ -39,16 +39,10 @@ def get_products(product: str = None):
 @app.get('/get_products_sort', response_model=ProductsResponse)
 def get_products_sort(order: Literal["asc", "desc"] = Query("asc",description="Sort By Price")):
     
-    sort_option = {
-        "asc" : "ASC",
-        "desc" : "DESC"
-    }
-    sql_order = sort_option[order]
-
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                f"SELECT id, product, price FROM products ORDER BY price {sql_order}"
+                f"SELECT id, product, price FROM products ORDER BY price  {order}"
             )
 
             products = cur.fetchall()
