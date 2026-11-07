@@ -48,7 +48,7 @@ def get_products_sort(order: Literal["asc", "desc"] = Query("asc",description="S
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                f"SELECT id, product, price FROM products ORDER BY price {sql_order}"
+                f"SELECT id, product, price FROM products ORDER BY price  {sql_order}"
             )
 
             products = cur.fetchall()
