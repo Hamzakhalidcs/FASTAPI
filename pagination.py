@@ -15,27 +15,45 @@ so it will show next 3
 from fastapi import FastAPI, Query
 import psycopg
 from classes import * 
+from typing import Literal
+
 
 app = FastAPI()
 
 @app.get("/products", response_model = ProductsResponse)
 def get_products(
     product : str =None,
+    order: Literal["asc", "desc"] = Query("asc"),
     page : int = Query(1, ge=1),
-    limit:int = Query(3,ge=1,le=100)
+    limit:int = Query(3, ge=1,le=100)
 ):
+    
+    
     offset = (page - 1) * limit
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                """
-                select id, product, price
-                from products 
-                order by id
-                limit %s offset %s
-                """,
+            if product:
+                cur.execute(
+                    f"""
+                    SELECT id, product, price
+                    FROM products
+                    WHERE product ILIKE %s
+                    ORDER BY price {order}
+                    LIMIT %s OFFSET %s;
+                    """,
+        
+                (f"%{product}%", limit, offset),
+                )
+            else:
+                cur.execute(
+                    f"""
+                    SELECT id, product, price
+                    FROM products
+                    ORDER BY price {order}
+                    LIMIT %s OFFSET %s
+                    """,
                 (limit, offset)
-            )
+                )
 
             products = cur.fetchall()
 
