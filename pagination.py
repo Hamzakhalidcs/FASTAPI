@@ -1,4 +1,11 @@
 """
+AI Engineering is the practice of taking existing AI model like chatgpt, claude or image 
+generator and building real, working software application around them. 
+Think like this 
+AI Researchers / Data scientist build the egnine (Ai Model)
+AI Engineers build the car around the engine(App, APi, databases, the user Interface)
+
+
 Pagination is important in Production APIs because returning thousand of records in one response 
 can increase response time, memory usage  and network overhead.
 
@@ -20,29 +27,52 @@ from typing import Literal
 
 app = FastAPI()
 
-@app.get("/products", response_model = ProductsResponse)
+import math
+from fastapi import FastAPI, Query
+from typing import Literal
+from classes import *
+
+@app.get("/products", response_model=ProductsResponse)
 def get_products(
-    product : str =None,
+    product: str = None,
     order: Literal["asc", "desc"] = Query("asc"),
-    page : int = Query(1, ge=1),
-    limit:int = Query(3, ge=1,le=100)
+    page: int = Query(1, ge=1),
+    limit: int = Query(3, ge=1, le=100)
 ):
-    
-    
     offset = (page - 1) * limit
+
     with get_connection() as conn:
         with conn.cursor() as cur:
+
+            # Query 1: Count matching products
             if product:
                 cur.execute(
-                    f"""
+                    """
+                    SELECT COUNT(*)
+                    FROM products
+                    WHERE product ILIKE %s
+                    """,
+                    (f"%{product}%",)
+                )
+            else:
+                cur.execute("SELECT COUNT(*) FROM products")
+
+            total_records = cur.fetchone()[0]
+
+            # Calculate total pages
+            total_pages = math.ceil(total_records / limit)
+
+            # Query 2: Retrieve actual product details
+            if product:
+                cur.execute(
+                    """
                     SELECT id, product, price
                     FROM products
                     WHERE product ILIKE %s
                     ORDER BY price {order}
-                    LIMIT %s OFFSET %s;
-                    """,
-        
-                (f"%{product}%", limit, offset),
+                    LIMIT %s OFFSET %s
+                    """.replace("{order}", order),
+                    (f"%{product}%", limit, offset)
                 )
             else:
                 cur.execute(
@@ -52,22 +82,25 @@ def get_products(
                     ORDER BY price {order}
                     LIMIT %s OFFSET %s
                     """,
-                (limit, offset)
+                    (limit, offset)
                 )
 
             products = cur.fetchall()
 
     return {
-        "Products" : [
+        "Products": [
             {
-                "id" : row[0],
-                "product" : row[1],
-                "price" : row[2]
+                "id": row[0],
+                "product": row[1],
+                "price": row[2]
             }
             for row in products
-        ]
+        ],
+        "total_records": total_records,
+        "total_pages": total_pages,
+        "current_page": page,
+        "limit": limit
     }
-
 """
 A few things to understand:
 - Query(1, ge=1) means the page defaults to 1 and cannot be less than 1.

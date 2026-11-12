@@ -22,7 +22,11 @@ class ProductResponse(BaseModel):
 
 class ProductsResponse(BaseModel):
     Products: list[ProductResponse]
-
+    total_records: int
+    total_pages: int
+    current_page: int
+    limit: int
+    
 class ProductCreateResponse(BaseModel):
     message: str
     Product: ProductResponse
