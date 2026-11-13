@@ -19,18 +19,14 @@ SELECT id, product, price from products order by id limit 3 offset 3 ;
 so it will show next 3 
 """
 
-from fastapi import FastAPI, Query
-import psycopg
+from fastapi import FastAPI, Query,HTTPException
 from classes import * 
 from typing import Literal
+import math
 
 
 app = FastAPI()
 
-import math
-from fastapi import FastAPI, Query
-from typing import Literal
-from classes import *
 
 @app.get("/products", response_model=ProductsResponse)
 def get_products(
@@ -58,9 +54,13 @@ def get_products(
                 cur.execute("SELECT COUNT(*) FROM products")
 
             total_records = cur.fetchone()[0]
+            total_pages = math.ceil(total_records/limit)
 
-            # Calculate total pages
-            total_pages = math.ceil(total_records / limit)
+            if total_pages>0 and page > total_pages:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Page {page} does not exist. Total available pages: {total_pages}"
+                )
 
             # Query 2: Retrieve actual product details
             if product:
