@@ -101,6 +101,60 @@ def get_products(
         "current_page": page,
         "limit": limit
     }
+
+
+@app.get('/products_cursor', response_model=ProductsCursorResponse)
+def get_product_cursor(
+    last_id : int | None = Query(None, description="The ID of the last record from previous page"),
+    limit : int = Query(3, ge=1, le=100, description="Number of records to return")
+):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            # if the last id is provided
+            if last_id is not None:
+                cur.execute(
+                    """
+                    SELECT id, product, price
+                    FROM products
+                    WHERE  id> %s
+                    ORDER BY id ASC
+                    LIMIT %s
+                    """,
+                    (last_id, limit)
+                )
+
+            # if the last_id is not provided
+            else:
+                cur.execute(
+                    """
+                    SELECT id, product, price
+                    FROM products
+                    ORDER BY id ASC
+                    LIMIT %s
+                    """,
+                    (limit,)
+                )
+            
+            products = cur.fetchall()
+        
+        # Get the ID of the last returned record
+        next_cursor = products[-1][0] if products else None
+
+        
+        # Return the formatted response
+        return{
+            "Products":[
+                {
+                    "id" : row[0],
+                    "product": row[1],
+                    "price" : row[2]
+                }
+                for row in products
+            ],
+            "next_cursor" : next_cursor,
+            "limit" : limit
+        }
+
 """
 A few things to understand:
 - Query(1, ge=1) means the page defaults to 1 and cannot be less than 1.

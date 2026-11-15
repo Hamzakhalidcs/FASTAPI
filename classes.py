@@ -26,7 +26,7 @@ class ProductsResponse(BaseModel):
     total_pages: int
     current_page: int
     limit: int
-    
+
 class ProductCreateResponse(BaseModel):
     message: str
     Product: ProductResponse
@@ -35,3 +35,7 @@ class ProductDeleteResponse(BaseModel):
     message: str
     product: ProductResponse
 
+class ProductsCursorResponse(BaseModel):
+    Products: list[ProductResponse]
+    next_cursor: int | None
+    limit: int
